@@ -1,6 +1,7 @@
 package com.ctsi.springboot.token.interceptor;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 
 import java.io.Writer;
 import java.util.Date;
@@ -48,9 +49,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 				Claims claims = JwtUtil.getClaimsFromToken(token);
 				Date date = claims.getExpiration();
 				long tokenTime = date.getTime();
-				log.info("获取Token的时间 " + tokenTime);
+				log.info("获取Token的时间 " + tokenTime + ", " + new Date(tokenTime));
 				long curTime = System.currentTimeMillis();
-				log.info("当前时间 " + curTime);
+				log.info("当前时间 " + curTime + ", " + new Date(curTime));
 				
 				if (curTime > tokenTime) {
 					try ( Writer writer = response.getWriter() ) {
@@ -62,6 +63,18 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 					
 					return false;
 				}
+			}
+			catch (ExpiredJwtException ex) {
+				log.info("token 过期");
+				ex.printStackTrace();
+				try ( Writer writer = response.getWriter() ) {
+					writer.write("token 过期，请重新获取");
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				return false;
 			}
 			catch (Exception ex) {
 				ex.printStackTrace();

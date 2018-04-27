@@ -36,8 +36,8 @@ public class JwtUtil {
 //    	long time = 3600 * 1000 * 2; // 2小时
     	long time = 60 * 1000 * 5; // 5分钟
     	long date = System.currentTimeMillis() + time;
-    	log.info("时间有效期 " + date);
         Date expirationDate = new Date(date);
+        log.info("时间有效期 " + date + ", " + expirationDate);
         
         String token = Jwts.builder().setClaims(claims).setExpiration(expirationDate).
         		signWith(SignatureAlgorithm.HS512, secret).compact();
@@ -54,13 +54,17 @@ public class JwtUtil {
      */
     public static  Claims getClaimsFromToken(String token) {
         Claims claims;
-        try {
-            claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
-        } 
-        catch (Exception e) {
-            e.printStackTrace();
-            claims = null;
-        }
+        claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+//        try {
+//        } 
+//        catch (ExpiredJwtException e) {
+//        	e.printStackTrace();
+//        	claims = null;
+//        }
+//        catch (Exception e) {
+//            e.printStackTrace();
+//            claims = null;
+//        }
         return claims;
     }
 
