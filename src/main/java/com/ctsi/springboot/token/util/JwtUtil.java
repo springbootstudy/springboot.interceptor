@@ -33,8 +33,11 @@ public class JwtUtil {
      * @return 令牌
      */
     public static String generateToken(Map<String, Object> claims) {
-    	long time = 3600 * 1000 * 2;
-        Date expirationDate = new Date(System.currentTimeMillis() + time);
+//    	long time = 3600 * 1000 * 2; // 2小时
+    	long time = 60 * 1000 * 5; // 5分钟
+    	long date = System.currentTimeMillis() + time;
+    	log.info("时间有效期 " + date);
+        Date expirationDate = new Date(date);
         
         String token = Jwts.builder().setClaims(claims).setExpiration(expirationDate).
         		signWith(SignatureAlgorithm.HS512, secret).compact();

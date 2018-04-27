@@ -1,6 +1,9 @@
 package com.ctsi.springboot.token.interceptor;
 
+import io.jsonwebtoken.Claims;
+
 import java.io.Writer;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,13 +24,13 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 	public boolean preHandle(HttpServletRequest request,
 			HttpServletResponse response, Object handler) throws Exception {
 		log.info("@@ preHandle");
+		response.setContentType("application/json; charset=utf-8");
 		
 		String token = request.getHeader("token");
 		log.info(token);
 		// 通过验证 true
 		if (StringUtils.isEmpty(token)) {
 			log.info("token为空");
-			response.setContentType("application/json; charset=utf-8");
 			
 			try ( Writer writer = response.getWriter() ) {
 				writer.write("请登录系统");
@@ -41,13 +44,28 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 		// 否则 false
 		else {
 			try {
-				JwtUtil.validateToken(token);
+//				JwtUtil.validateToken(token);
+				Claims claims = JwtUtil.getClaimsFromToken(token);
+				Date date = claims.getExpiration();
+				long tokenTime = date.getTime();
+				log.info("获取Token的时间 " + tokenTime);
+				long curTime = System.currentTimeMillis();
+				log.info("当前时间 " + curTime);
+				
+				if (curTime > tokenTime) {
+					try ( Writer writer = response.getWriter() ) {
+						writer.write("token 过期，请重新获取");
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
+					
+					return false;
+				}
 			}
 			catch (Exception ex) {
 				ex.printStackTrace();
 				log.info("解析token出错");
-				
-				response.setContentType("application/json; charset=utf-8");
 				
 				try ( Writer writer = response.getWriter() ) {
 					writer.write("token 不正确");
